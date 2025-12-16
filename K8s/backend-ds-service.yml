@@ -63,7 +63,7 @@ spec:
       containers:
         - name: backend-container
           # Always use specific, immutable tags instead of 'latest' in Production
-          image: 17rj/three-tier-todo-backend:v1.0.0 
+          image: 17rj/three-tier-todo-backend:latest # for prod v1.0.0 
           ports:
             - containerPort: 8080
           env: 

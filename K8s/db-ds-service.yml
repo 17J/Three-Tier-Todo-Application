@@ -127,7 +127,7 @@ spec:
       spec:
         accessModes: ["ReadWriteOnce"]
         # Use a reliable Storage Class (e.g., gp3 on AWS)
-        storageClassName: gp3
+        storageClassName: standard  # in minikube standard
         resources:
           requests:
             storage: 10Gi # Doubled storage to 10Gi for production use
