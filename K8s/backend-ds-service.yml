@@ -25,8 +25,6 @@ data:
   # We can also store connection string here if needed:
   # jdbc-url: jdbc:mysql://mysql-svc:3306/mydb
 
-
-
 ---
 # --------------------------------------------------------------------------
 # KUBERNETES DEPLOYMENT - JAVA BACKEND (Production Grade)
@@ -49,8 +47,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1 
-      maxUnavailable: 0 
+      maxSurge: 1 # Allow 1 extra pod during updates
+      maxUnavailable: 0 # Ensure at least all current replicas are available during updates
   template:
     metadata:
       labels:
@@ -59,32 +57,33 @@ spec:
         version: v1.0.0
     spec:
       # 3. Graceful Termination: Gives the JVM time (60s) to shut down and release resources/connections.
-      terminationGracePeriodSeconds: 60 
+      terminationGracePeriodSeconds: 60
       containers:
         - name: backend-container
           # Always use specific, immutable tags instead of 'latest' in Production
-          image: 17rj/three-tier-todo-backend:latest # for prod v1.0.0 
+          image: 17rj/three-tier-todo-backend:latest # for prod v1.0.0
           ports:
-            - containerPort: 8080
-          env: 
+            - containerPort: 8085
+              name: http
+          env:
             # 4. Database Connection URL: Uses the internal DNS name of the MySQL Service
             - name: SPRING_DATASOURCE_URL
               value: jdbc:mysql://mysql-svc:3306/mydb # Assumes your MySQL Service is named 'mysql-svc'
-            
+
             # 5. Security: Injecting non-sensitive username from ConfigMap
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 configMapKeyRef: # Using ConfigMapKeyRef
                   name: db-config # Referencing the new ConfigMap
                   key: username # Key name inside the ConfigMap
-            
+
             # 6. Security: Injecting sensitive password from Secret
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef: # Using SecretKeyRef
                   name: db-credentials # Referencing the new Secret
                   key: password # Key name inside the Secret (contains base64 value)
-          
+
           # 7. Resource Management: Essential for JVM stability and avoiding throttling
           resources:
             requests:
@@ -95,28 +94,50 @@ spec:
               # Hard limit on resources (OOMKiller will terminate the pod if it exceeds memory limit)
               cpu: "1500m" # 1.5 CPU Core Limit
               memory: "1Gi" # 1 Gigabyte Memory Limit
-          
+
           # 8. Health Probes: Using the Spring Boot Actuator health endpoint
-          # Liveness Probe: If this fails, the container is restarted.
-          livenessProbe:
-            httpGet:
-              path: /actuator/health # Requires Spring Boot Actuator dependency
-              port: 8080
-            initialDelaySeconds: 60 # Give the Java app time to fully start
-            periodSeconds: 10
-            failureThreshold: 3
-          
-          # Readiness Probe: If this fails, the pod is removed from the Service's endpoints (no traffic routed)
-          readinessProbe:
+          # Startup Probe: Added to handle slow-starting Java applications
+          # This probe runs first and delays liveness/readiness probes until the app is fully started.
+          # CRITICAL: Prevents premature pod restarts during initial JVM/Spring Boot startup.
+          startupProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 30 # Start checking readiness sooner than liveness
-            periodSeconds: 5
-            failureThreshold: 2
+              port: 8085
+            initialDelaySeconds: 60 # Start checking after 20 seconds
+            periodSeconds: 15 # Check every 10 seconds
+            failureThreshold: 12 # Allow up to 120 seconds total (20 + 10*12) for startup
+            timeoutSeconds: 5 # Wait 5 seconds for each probe response
+
+          # Liveness Probe: If this fails, the container is restarted.
+          # Only starts checking AFTER startupProbe succeeds.
+          # Detects if the application is stuck or deadlocked and needs a restart.
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness # Use specific liveness endpoint if available
+              port: 8085
+            initialDelaySeconds: 0 # No delay needed since startupProbe handles initial delay
+            periodSeconds: 10 # Check every 10 seconds
+            failureThreshold: 3 # Restart after 3 consecutive failures (30 seconds)
+            timeoutSeconds: 5 # Wait 5 seconds for response
+
+          # Readiness Probe: If this fails, the pod is removed from the Service's endpoints (no traffic routed)
+          # Only starts checking AFTER startupProbe succeeds.
+          # Ensures the application is ready to handle requests (e.g., database connected, caches warmed).
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness # Use specific readiness endpoint if available
+              port: 8085
+            initialDelaySeconds: 0 # No delay needed since startupProbe handles initial delay
+            periodSeconds: 5 # Check every 5 seconds (more frequent than liveness)
+            failureThreshold: 2 # Remove from service after 2 consecutive failures (10 seconds)
+            successThreshold: 1 # Mark ready after 1 successful check
+            timeoutSeconds: 3 # Wait 3 seconds for response
 
 ---
+# --------------------------------------------------------------------------
 # KUBERNETES SERVICE - Backend (Internal Communication)
+# ClusterIP is ideal for services that are only accessed internally within the cluster.
+# --------------------------------------------------------------------------
 apiVersion: v1
 kind: Service
 metadata:
@@ -129,6 +150,6 @@ spec:
   ports:
     - protocol: TCP
       port: 8080 # Service port (used by frontend)
-      targetPort: 8080 # Container port
-  # ClusterIP is ideal for services that are only accessed internally within the cluster (like a backend API).
-  type: ClusterIP
+      targetPort: 8085 # Container port
+      name: http
+  type: ClusterIP # Internal service, not exposed outside the cluster

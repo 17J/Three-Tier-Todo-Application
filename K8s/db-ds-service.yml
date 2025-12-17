@@ -100,21 +100,32 @@ spec:
               memory: "2Gi" # Hard memory limit for the DB
 
           # 5. Health Probes: Ensure the database server is responsive and ready.
-          # Liveness Probe: Checks if the MySQL process is running.
+          # Liveness Probe: Checks if the MySQL process is running and can respond to pings.
+          # FIXED: Now includes authentication using root password from environment variable.
           livenessProbe:
             exec:
-              command: ["mysqladmin", "ping", "-h", "localhost"] # Standard MySQL check
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
+              command:
+                - bash
+                - -c
+                - "mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD}"
+            initialDelaySeconds: 30 # Wait 30 seconds after container starts before first check
+            periodSeconds: 10 # Check every 10 seconds
+            timeoutSeconds: 5 # Wait 5 seconds for response
+            failureThreshold: 3 # Restart container after 3 consecutive failures
 
           # Readiness Probe: Ensures MySQL is ready to accept connections before routing traffic.
+          # FIXED: Now includes authentication credentials to prevent "Access denied" errors.
+          # This probe runs a simple SELECT query to verify the database is fully operational.
           readinessProbe:
             exec:
-              command: ["mysql", "-h", "127.0.0.1", "-e", "SELECT 1"] # Check DB connection
-            initialDelaySeconds: 15
-            periodSeconds: 5
-            timeoutSeconds: 3
+              command:
+                - bash
+                - -c
+                - "mysql -h 127.0.0.1 -u root -p${MYSQL_ROOT_PASSWORD} -e 'SELECT 1'"
+            initialDelaySeconds: 30 # Increased from 15 to 30 to allow MySQL full initialization time
+            periodSeconds: 5 # Check every 5 seconds
+            timeoutSeconds: 3 # Wait 3 seconds for response
+            failureThreshold: 3 # Mark as not ready after 3 consecutive failures
 
           volumeMounts:
             - name: data
