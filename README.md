@@ -1,4 +1,4 @@
-# Three-Tier Todo Application (Kubernetes Implementation)
+# Three-Tier Todo Application
 
 A production-ready full-stack Todo application demonstrating **Three-Tier Architecture** deployed on **Kubernetes**.
 
