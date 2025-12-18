@@ -60,7 +60,7 @@ metadata:
 spec:
   serviceName: mysql-svc # Must match the Headless Service name
   # 1. High Availability: Use 3 replicas for database redundancy and robustness.
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -138,7 +138,7 @@ spec:
       spec:
         accessModes: ["ReadWriteOnce"]
         # Use a reliable Storage Class (e.g., gp3 on AWS)
-        storageClassName: standard  # in minikube standard
+        storageClassName: standard # in minikube standard
         resources:
           requests:
             storage: 10Gi # Doubled storage to 10Gi for production use
