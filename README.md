@@ -316,7 +316,6 @@ kubectl delete pvc -n todo-app --all
 
 ---
 
-
 ### Snapshots
 
 Some Screenshots of this project are given below
@@ -329,9 +328,6 @@ Some Screenshots of this project are given below
     <img src="snapshot/taskmanager3.jpg"/>
 </p>
 
-
-
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
@@ -341,9 +337,5 @@ Contributions are welcome! Please follow these steps:
 3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-
-
-
 
 ---
