@@ -90,8 +90,8 @@ spec:
     app: frontend
   ports:
     - protocol: TCP
-      port: 80 # Service exposed port
-      targetPort: 3000 # Container port
+      port: 80 # Service exposed port (ingress port also changes from here if you change into ingress.yml)
+      targetPort: 80 # Container port
   # Type: LoadBalancer if using traditional Ingress Controller (Nginx/HAProxy).
   # If using Istio (Service Mesh), you usually use ClusterIP here and expose
   # the service externally via an Istio Gateway resource.
