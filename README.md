@@ -1,12 +1,10 @@
 # Three-Tier Todo Application
 
-A production-ready full-stack Todo application demonstrating **Three-Tier Architecture** deployed on **Kubernetes**.
-
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────┐
-│   Frontend      │  React.js (Port 3000)
+│   Frontend      │  Nginx (Port 80)
 │  (Nginx/React)  │
 └────────┬────────┘
          │
@@ -62,7 +60,40 @@ Before deploying, ensure you have:
   - Minikube, Kind, or cloud provider (GKE, EKS, AKS)
 - **kubectl** installed and configured (v1.20+)
 - **Docker** installed (for building custom images)
+
+```bash
+  sudo apt update
+  sudo apt install ca-certificates curl -y
+  sudo install -m 0755 -d /etc/apt/keyrings
+  sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  sudo chmod a+r /etc/apt/keyrings/docker.asc
+  echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$UBUNTU_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+  sudo apt update
+  sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+  sudo systemctl start docker
+  sudo systemctl enable docker
+  sudo systemctl status docker  # Check status of docker
+
+  sudo usermod -aG docker $USER && newgrp docker
+
+  docker ps
+```
+
 - **Ingress Controller** (nginx-ingress recommended)
+
+```bash
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml  # for kind cluster
+  sleep 120
+
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml # for AKS/EKS/GKE Production grade cluster
+  sleep 120
+
+```
+
 - **Cluster Resources:**
   - Minimum 4GB RAM
   - 2 CPU cores
@@ -80,9 +111,6 @@ kubectl get nodes
 
 # Verify StorageClass
 kubectl get storageclass
-
-# Check Ingress Controller
-kubectl get pods -n ingress-nginx
 ```
 
 ---
@@ -215,8 +243,8 @@ kubectl get ingress -n todo-app
 
 ```bash
 # Frontend
-kubectl port-forward svc/frontend-service 3000:80 -n todo-app
-# Access at: http://localhost:3000
+kubectl port-forward svc/frontend-service 8000:80 -n todo-app
+# Access at: http://localhost:8000
 
 # Backend (for direct API testing)
 kubectl port-forward svc/backend-service 8080:8080 -n todo-app
