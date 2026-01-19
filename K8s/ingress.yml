@@ -5,11 +5,16 @@ metadata:
   name: todo-app-ingress
   namespace: threetierapp
   annotations:
-    # NGINX annotations 
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '15'
+    alb.ingress.kubernetes.io/success-codes: '200'
+    alb.ingress.kubernetes.io/tags: Environment=dev,Project=threetier
 spec:
-  ingressClassName: nginx  # Keep as nginx
+  ingressClassName: alb
   rules:
     - http:
         paths:
