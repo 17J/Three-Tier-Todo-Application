@@ -5,13 +5,11 @@ metadata:
   name: todo-app-ingress
   namespace: threetierapp
   annotations:
-    # AWS ALB annotations
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
-    alb.ingress.kubernetes.io/healthcheck-path: /
+    # NGINX annotations 
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
-  ingressClassName: alb  # Changed from nginx to alb
+  ingressClassName: nginx  # Keep as nginx
   rules:
     - http:
         paths:
