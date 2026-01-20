@@ -280,8 +280,6 @@ sudo usermod -aG docker $USER && newgrp docker
 sudo snap install helm --classic
 ```
 
-
-
 ### **6. Kubernetes RBAC Setup**
 
 ```bash
@@ -291,7 +289,6 @@ kubectl create namespace threetierapp
 # Apply RBAC for Jenkins
 kubectl apply -f jenkins-rbac.yaml
 ```
-
 
 ---
 
@@ -326,7 +323,7 @@ Three-Tier-Todo-Application/
 │   └── jenkins-rbac.yaml
 │
 ├── Jenkinsfile      # Pipeline Defination
-├── istio/               
+├── istio/
 ├── docker-compose.yaml          # Local development
 ├── snapshot/                    # Screenshots
 └── README.md
@@ -343,22 +340,27 @@ git clone https://github.com/17J/Three-Tier-Todo-Application.git
 cd Three-Tier-Todo-Application
 ```
 
-### **2. Setup EKS Cluster**
+### \*_2. Setup EKS Cluster_
 
 # Clone Terraform repository
+
 git clone https://github.com/17J/Terraform-AWS-EKS.git
-cd Terraform-AWS-EKS
+cd Terraform-AWS-EKS/terraform/
 
 # Initialize Terraform
+
 terraform init
 
 # Review the plan
+
 terraform plan
 
 # Apply configuration
+
 terraform apply -auto-approve
 
 # Verify cluster
+
 kubectl get nodes
 
 ### **3. Install ALB Controller**
