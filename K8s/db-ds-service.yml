@@ -78,6 +78,14 @@ spec:
             - name: mysql-storage
               mountPath: /var/lib/mysql
 
-      volumes:
-        - name: mysql-storage
-          emptyDir: {} # Local testing ke liye easy (Pod delete hone par data clear ho jayega)
+  # 6. Persistent Storage: Dynamic provisioning of storage for each replica (mysql-db-0, mysql-db-1, etc.)
+  volumeClaimTemplates:
+    - metadata:
+        name: data # Must match the name used in volumeMounts
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        # Use a reliable Storage Class (e.g., gp3 on AWS)
+        storageClassName: standard # in minikube standard
+        resources:
+          requests:
+            storage: 10Gi # Doubled storage to 10Gi for production use
