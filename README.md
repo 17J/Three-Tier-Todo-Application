@@ -343,26 +343,27 @@ cd Three-Tier-Todo-Application
 ### \*_2. Setup EKS Cluster_
 
 # Clone Terraform repository
-
+```bash
 git clone https://github.com/17J/Terraform-AWS-EKS.git
 cd Terraform-AWS-EKS/terraform/
-
+```
 # Initialize Terraform
-
+```bash
 terraform init
+```
 
 # Review the plan
-
+```bash
 terraform plan
-
+```
 # Apply configuration
-
+```bash
 terraform apply -auto-approve
-
+```
 # Verify cluster
-
+```bash
 kubectl get nodes
-
+```
 ### **3. Install ALB Controller**
 
 ```bash
