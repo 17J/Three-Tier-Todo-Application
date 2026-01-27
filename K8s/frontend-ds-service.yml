@@ -78,7 +78,7 @@ spec:
             failureThreshold: 2
 
 ---
-# KUBERNETES SERVICE - Load Balancer / Istio Integration
+# KUBERNETES SERVICE - NodePort / Istio Integration
 apiVersion: v1
 kind: Service
 metadata:
@@ -92,7 +92,8 @@ spec:
     - protocol: TCP
       port: 80 # Service exposed port (ingress port also changes from here if you change into ingress.yml)
       targetPort: 80 # Container port
+      nodePort: 30008 # Node Port:  port range [30000-32767]
   # Type: LoadBalancer if using traditional Ingress Controller (Nginx/HAProxy).
   # If using Istio (Service Mesh), you usually use ClusterIP here and expose
   # the service externally via an Istio Gateway resource.
-  type: LoadBalancer
+  type: NodePort ## due to AWS ALB Ingress Controller
